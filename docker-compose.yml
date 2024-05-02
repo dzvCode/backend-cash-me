@@ -1,0 +1,25 @@
+services:
+  node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    # networks:
+    #   - node-network
+
+  # mongodb:
+  #   image: mongo:latest
+  #   volumes:
+  #     - mongodb-data:/data/db
+  #   ports:
+  #     - "27017:27017"
+  #   networks:
+  #     - node-network
+
+# volumes:
+#   mongodb-data:
+
+# networks:
+#   node-network:
+#     driver: bridge
