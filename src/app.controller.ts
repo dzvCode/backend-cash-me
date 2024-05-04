@@ -1,15 +1,17 @@
-import { Controller, Get, UseGuards, Req, Res, Post } from '@nestjs/common';
+import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
-import { LocalAuthGuard } from './auth/local-auth.guard';
 import { AuthService } from './auth/auth.service';
 import { GoogleAuthGuard } from './auth/google-auth.guard';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { LocalAuthGuard } from './auth/local-auth.guard';
+import { ScrappingService } from './scrapping/scrapping.service';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private authService: AuthService
+    private authService: AuthService,
+    private scrappingService: ScrappingService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -60,4 +62,9 @@ export class AppController {
     return this.authService.login(req.user);
   }
 
+  @Get('/scrapping/:codigo')
+  async getAlumno(@Req() req) {
+    const { codigo } = req.params;    
+    return this.scrappingService.scrapeAlumno(codigo);
+  }
 }
