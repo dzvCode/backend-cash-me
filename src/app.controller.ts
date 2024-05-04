@@ -1,8 +1,9 @@
 import { Controller, Get, UseGuards, Req, Res, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { AuthGuard } from '@nestjs/passport';
 import { LocalAuthGuard } from './auth/local-auth.guard';
 import { AuthService } from './auth/auth.service';
+import { GoogleAuthGuard } from './auth/google-auth.guard';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Controller()
 export class AppController {
@@ -11,7 +12,7 @@ export class AppController {
     private authService: AuthService
   ) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   @Get()
   getProjectInfo(): object {
     return this.appService.getProjectInfo();
@@ -23,11 +24,11 @@ export class AppController {
   }
   
   @Get('/auth/google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   googleAuth(@Req() req) {}
 
   @Get('/auth/google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   googleAuthRedirect(@Req() req, @Res() res) {
     console.log("req user", req.user);
     
