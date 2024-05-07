@@ -1,18 +1,10 @@
-import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
-import { AuthService } from './auth/auth.service';
-import { GoogleAuthGuard } from './auth/google-auth.guard';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { LocalAuthGuard } from './auth/local-auth.guard';
-import { ScrappingService } from './scrapping/scrapping.service';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-    private authService: AuthService,
-    private scrappingService: ScrappingService,
-  ) {}
+  constructor(private readonly appService: AppService) {}
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -23,25 +15,6 @@ export class AppController {
   @Get('/ping')
   ping(): string {
     return this.appService.healthCheck();
-  }
-  
-  @Get('/auth/google')
-  @UseGuards(GoogleAuthGuard)
-  googleAuth(@Req() req) {}
-
-  @Get('/auth/google/callback')
-  @UseGuards(GoogleAuthGuard)
-  googleAuthRedirect(@Req() req, @Res() res) {
-    console.log("req user", req.user);
-    
-    // Redirect the user based on authentication status
-    if (req.user) {
-      // User is authenticated, redirect to a success page
-      return res.redirect('/success');
-    } else {
-      // User is not authenticated, redirect to an error page
-      return res.redirect('/error');
-    }
   }
 
   @Get('/success')
@@ -54,17 +27,5 @@ export class AppController {
   errorPage() {
     // Render an error page or return a JSON response indicating error
     return { message: 'Authentication failed' };
-  }
-  
-  @UseGuards(LocalAuthGuard)
-  @Post('auth/login')
-  async login(@Req() req) {
-    return this.authService.login(req.user);
-  }
-
-  @Get('/scrapping/:codigo')
-  async getAlumno(@Req() req) {
-    const { codigo } = req.params;    
-    return this.scrappingService.scrapeAlumno(codigo);
   }
 }
