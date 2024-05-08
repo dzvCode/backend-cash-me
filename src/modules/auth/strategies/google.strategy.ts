@@ -3,12 +3,16 @@ import { PassportStrategy } from '@nestjs/passport';
 import { config } from 'dotenv';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { UsersService } from 'src/modules/users/services/users.service';
+import { AuthService } from '../services/auth.service';
 
 config();
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor(private readonly usersService: UsersService) {
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -27,13 +31,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const email = emails[0].value;
 
     // Check if the email address ends with "@unmsm.edu.pe"
-    if (!email.endsWith('@unmsm.edu.pe')) {
-      // Return an error indicating unauthorized access
-      // return done({ status: 401, message: 'Unauthorized access. Only users with @unmsm.edu.pe email addresses are allowed.' }, false);
-      throw new UnauthorizedException(
-        'Unauthorized access. Only users with @unmsm.edu.pe email addresses are allowed.',
-      );
-    }
+    this.authService.verifyEmailDomain(email);
 
     const existingUser = await this.usersService.findByGoogleIdOrEmail(
       id,

@@ -125,7 +125,7 @@ export class UsersService {
     const userPhoto = photo === emptyImage ? '' : baseUrl + photo;    
     
     if (!faculty || !major) {
-      throw new Error('Student data not found');
+      return null;
     }
 
     return { faculty, major, userPhoto };
