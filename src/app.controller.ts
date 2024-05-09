@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
-import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+import { AccessTokenGuard } from './modules/auth/guards/access-token.guard';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('app')
@@ -8,7 +8,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessTokenGuard)
   @Get()
   getProjectInfo(): object {
     return this.appService.getProjectInfo();

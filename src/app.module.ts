@@ -3,18 +3,18 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
-import { AuthController } from './modules/auth/controller/auth.controller';
 import { GoogleStrategy } from './modules/auth/strategies/google.strategy';
-import { UsersController } from './modules/users/controllers/users.controller';
 import { UsersModule } from './modules/users/users.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    AuthModule,
-    UsersModule,
+    ConfigModule.forRoot({isGlobal: true}),
     MongooseModule.forRoot(process.env.MONGODB_URI),
+    AuthModule,
+    UsersModule,    
   ],
-  controllers: [AppController, AuthController, UsersController],
+  controllers: [AppController],
   providers: [AppService, GoogleStrategy],
 })
 export class AppModule {}
