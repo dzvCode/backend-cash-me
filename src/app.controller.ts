@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
-import { AccessTokenGuard } from './modules/auth/guards/access-token.guard';
+import { AccessTokenGuard } from './common/guards/access-token.guard';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('app')

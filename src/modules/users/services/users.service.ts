@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as cheerio from 'cheerio';
 import { Model } from 'mongoose';
@@ -6,6 +6,7 @@ import { LoginDto } from 'src/modules/auth/dtos/login.dto';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { User } from '../interfaces/user.interface';
 import { UpdateUserDto } from '../dtos/update-user.dto';
+import { UserRole } from 'src/common/enums/user-role.enum';
 
 @Injectable()
 /**
@@ -27,9 +28,10 @@ export class UsersService {
 
     const newUser = new this.userModel({
       ...user,
-      faculty: extractedData.faculty,
-      major: extractedData.major,
-      userPhoto: extractedData.userPhoto,
+      faculty: extractedData?.faculty,
+      major: extractedData?.major,
+      userPhoto: extractedData?.userPhoto ?? user.userPhoto,
+      role: user.role || UserRole.USER,
     });
     return await newUser.save();
   }
@@ -118,6 +120,16 @@ export class UsersService {
    */
   async delete(id: string): Promise<User> {
     return this.userModel.findByIdAndDelete(id).exec();
+  }
+
+  async changeRole(id: string, role: UserRole): Promise<User> {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.role = role;
+    return user.save();
   }
 
   /**

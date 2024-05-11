@@ -10,15 +10,18 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { TransformInterceptor } from 'src/interceptors/TransformInterceptor';
-import { GoogleAuthGuard } from 'src/modules/auth/guards/google-auth.guard';
+import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
+import { GoogleAuthGuard } from 'src/common/guards/google-auth.guard';
 import { AuthService } from 'src/modules/auth/services/auth.service';
 import { CreateUserDto } from 'src/modules/users/dtos/create-user.dto';
 import { UsersService } from 'src/modules/users/services/users.service';
 import { LoginDto } from '../dtos/login.dto';
-import { AccessTokenGuard } from '../guards/access-token.guard';
+import { AccessTokenGuard } from '../../../common/guards/access-token.guard';
 import { Request } from 'express';
-import { RefreshTokenGuard } from '../guards/refresh-token.guard';
+import { RefreshTokenGuard } from '../../../common/guards/refresh-token.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/common/enums/user-role.enum';
 
 @ApiBearerAuth()
 @ApiTags('auth')
@@ -30,14 +33,14 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
-  @Get('/google')
-  @UseGuards(GoogleAuthGuard)
+  @Get('/google')  
+  @UseGuards(GoogleAuthGuard)  
   googleAuth(@Req() req) {
     const { user } = req;
     console.log('req user', user);
   }
 
-  @Get('/google/callback')
+  @Get('/google/callback')  
   @UseGuards(GoogleAuthGuard)
   async googleAuthRedirect(@Req() req) {
     return await this.authService.googleLogin(req);    

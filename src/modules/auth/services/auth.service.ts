@@ -11,6 +11,7 @@ import { CreateUserDto } from 'src/modules/users/dtos/create-user.dto';
 import { UsersService } from '../../users/services/users.service';
 import { LoginResponseDto } from '../dtos/login-response.dto';
 import { LoginDto } from '../dtos/login.dto';
+import { UserRole } from 'src/common/enums/user-role.enum';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +28,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.getTokens(user._id, user.email);
+    const tokens = await this.getTokens(user._id, user.email, user.role);
     await this.updateRefreshToken(user._id, tokens.refreshToken);
     const { accessToken, refreshToken } = tokens;
     const userResponse: LoginResponseDto = {
@@ -47,7 +48,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.getTokens(req.user._id, req.user.email);
+    const tokens = await this.getTokens(req.user._id, req.user.email, req.user.role);
     await this.updateRefreshToken(req.user._id, tokens.refreshToken);
     const { accessToken, refreshToken } = tokens;
 
@@ -79,7 +80,7 @@ export class AuthService {
     createUserDto.major = studenCodeData.major;
 
     const newUser = await this.usersService.create(createUserDto);
-    const tokens = await this.getTokens(newUser.id, newUser.email);
+    const tokens = await this.getTokens(newUser.id, newUser.email, newUser.role);
     await this.updateRefreshToken(newUser.id, tokens.refreshToken);
 
     return {
@@ -127,7 +128,7 @@ export class AuthService {
       throw new ForbiddenException('Access Denied');
     }
 
-    const tokens = await this.getTokens(user.id, user.email);
+    const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
     return {
@@ -143,17 +144,17 @@ export class AuthService {
     });
   }
 
-  async getTokens(userId: string, email: string) {
+  async getTokens(userId: string, email: string, role: UserRole) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: userId, email },
+        { sub: userId, email, role },
         {
           secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
           expiresIn: '1h',
         },
       ),
       this.jwtService.signAsync(
-        { sub: userId, email },
+        { sub: userId, email, role },
         {
           secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
           expiresIn: '7d',
