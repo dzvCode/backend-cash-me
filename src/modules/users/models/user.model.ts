@@ -1,5 +1,4 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Exclude } from "class-transformer";
 
 @Schema()
 export class User {
@@ -29,6 +28,9 @@ export class User {
 
     @Prop()
     googleId: string;
+
+    @Prop()
+    refreshToken: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -5,4 +5,5 @@ export const swaggerConfig = new DocumentBuilder()
   .setDescription('The CashMe API description')
   .setVersion('1.0')
   .addTag('cashme')
+  .addBearerAuth()
   .build();

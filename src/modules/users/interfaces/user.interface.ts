@@ -11,4 +11,5 @@ export interface User extends Document {
     userPhoto: string;
     password: string;
     googleId: string;
+    refreshToken: string;
 }

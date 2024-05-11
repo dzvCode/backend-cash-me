@@ -43,4 +43,8 @@ export class CreateUserDto {
     @IsOptional()
     @IsString()
     googleId?: string;
+    
+    @IsOptional()
+    @IsString()
+    refreshToken?: string;
 }

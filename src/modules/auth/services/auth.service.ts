@@ -1,46 +1,96 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../../users/services/users.service';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto } from '../dtos/login.dto';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/modules/users/dtos/create-user.dto';
-import { User } from 'src/modules/users/interfaces/user.interface';
+import { UsersService } from '../../users/services/users.service';
 import { LoginResponseDto } from '../dtos/login-response.dto';
+import { LoginDto } from '../dtos/login.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
-  async validateUser(loginDto: LoginDto): Promise<any> {
-    const user = await this.usersService.findByEmailAndPassword(loginDto);
-    if (user) {
-      return user;
+  async login(data: LoginDto) {
+    const user = await this.usersService.findByEmailAndPassword(data);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
     }
-    return null;
-  }
 
-  async loginWithEmail(user: User): Promise<LoginResponseDto> {
-    const payload = { username: user.email, sub: user._id };
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: '7d',
-    });
-    const expiresIn = 3600;
-
+    const tokens = await this.getTokens(user._id, user.email);
+    await this.updateRefreshToken(user._id, tokens.refreshToken);
+    const { accessToken, refreshToken } = tokens;
     const userResponse: LoginResponseDto = {
       accessToken,
-      refreshToken,
-      expiresIn,
+      refreshToken,      
       user,
     };
 
-    return userResponse;
+    return {
+      message: 'Login successful',
+      result: userResponse,
+    };
   }
 
-  async register(createUserDto: CreateUserDto): Promise<User> {
-    return await this.usersService.create(createUserDto);
+  async googleLogin(req) {
+    if (!req.user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const tokens = await this.getTokens(req.user._id, req.user.email);
+    await this.updateRefreshToken(req.user._id, tokens.refreshToken);
+    const { accessToken, refreshToken } = tokens;
+
+    const user: LoginResponseDto = {
+      accessToken,
+      refreshToken,      
+      user: req.user,
+    };
+
+    return {
+      message: 'User information from google',
+      result: user,
+    };
+  }
+
+  async register(createUserDto: CreateUserDto) {
+    this.verifyEmailDomain(createUserDto.email);
+    await this.userExists(createUserDto.email, createUserDto.googleId);
+
+    const studenCodeData = await this.usersService.scrapeAlumno(
+      createUserDto.studentCode,
+    );
+
+    if (!studenCodeData) {
+      throw new NotFoundException('Invalid student code');
+    }
+
+    createUserDto.faculty = studenCodeData.faculty;
+    createUserDto.major = studenCodeData.major;
+
+    const newUser = await this.usersService.create(createUserDto);
+    const tokens = await this.getTokens(newUser.id, newUser.email);
+    await this.updateRefreshToken(newUser.id, tokens.refreshToken);
+
+    return {
+      message: 'User registered successfully',
+      result: newUser,
+    };
+  }
+
+  async logout(userId: string) {
+    await this.usersService.update(userId, { refreshToken: null });
+    return { message: 'Logout successful' };
   }
 
   verifyEmailDomain(email: string): void {
@@ -60,5 +110,61 @@ export class AuthService {
     if (user) {
       throw new UnauthorizedException('User already exists');
     }
+  }
+
+  async refreshToken(userId: string, refreshToken: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user?.refreshToken) {
+      throw new ForbiddenException('Access Denied');
+    }
+
+    const refreshTokenMatches = await bcrypt.compare(
+      user.refreshToken,
+      refreshToken,
+    );
+
+    if (!refreshTokenMatches) {
+      throw new ForbiddenException('Access Denied');
+    }
+
+    const tokens = await this.getTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return {
+      message: 'Token refreshed successfully',
+      result: tokens,
+    };
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string) {
+    const hashedRefreshToken = await this.hashData(refreshToken);
+    await this.usersService.update(userId, {
+      refreshToken: hashedRefreshToken,
+    });
+  }
+
+  async getTokens(userId: string, email: string) {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        { sub: userId, email },
+        {
+          secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+          expiresIn: '1h',
+        },
+      ),
+      this.jwtService.signAsync(
+        { sub: userId, email },
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+          expiresIn: '7d',
+        },
+      ),
+    ]);
+
+    return { accessToken, refreshToken };
+  }
+
+  async hashData(data: string) {
+    return await bcrypt.hash(data, 10);
   }
 }
