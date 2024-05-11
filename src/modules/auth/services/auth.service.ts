@@ -4,14 +4,13 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { UsersService } from '../../users/services/users.service';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { LoginDto } from '../dtos/login.dto';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/modules/users/dtos/create-user.dto';
-import { User } from 'src/modules/users/interfaces/user.interface';
+import { UsersService } from '../../users/services/users.service';
 import { LoginResponseDto } from '../dtos/login-response.dto';
+import { LoginDto } from '../dtos/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,14 +20,14 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async loginWithEmail(data: LoginDto): Promise<LoginResponseDto> {
+  async login(data: LoginDto) {
     const user = await this.usersService.findByEmailAndPassword(data);
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.getTokens(user._id, user.email);    
+    const tokens = await this.getTokens(user._id, user.email);
     await this.updateRefreshToken(user._id, tokens.refreshToken);
     const { accessToken, refreshToken } = tokens;
     const userResponse: LoginResponseDto = {
@@ -37,10 +36,34 @@ export class AuthService {
       user,
     };
 
-    return userResponse;
+    return {
+      message: 'Login successful',
+      result: userResponse,
+    };
   }
 
-  async register(createUserDto: CreateUserDto): Promise<User> {
+  async googleLogin(req) {
+    if (!req.user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const tokens = await this.getTokens(req.user._id, req.user.email);
+    await this.updateRefreshToken(req.user._id, tokens.refreshToken);
+    const { accessToken, refreshToken } = tokens;
+
+    const user: LoginResponseDto = {
+      accessToken,
+      refreshToken,      
+      user: req.user,
+    };
+
+    return {
+      message: 'User information from google',
+      result: user,
+    };
+  }
+
+  async register(createUserDto: CreateUserDto) {
     this.verifyEmailDomain(createUserDto.email);
     await this.userExists(createUserDto.email, createUserDto.googleId);
 
@@ -54,16 +77,20 @@ export class AuthService {
 
     createUserDto.faculty = studenCodeData.faculty;
     createUserDto.major = studenCodeData.major;
-    
-    const newUser = await this.usersService.create(createUserDto);
-    const tokens = await this.getTokens(newUser._id, newUser.email);
-    await this.updateRefreshToken(newUser._id, tokens.refreshToken);
 
-    return newUser;
+    const newUser = await this.usersService.create(createUserDto);
+    const tokens = await this.getTokens(newUser.id, newUser.email);
+    await this.updateRefreshToken(newUser.id, tokens.refreshToken);
+
+    return {
+      message: 'User registered successfully',
+      result: newUser,
+    };
   }
 
   async logout(userId: string) {
     await this.usersService.update(userId, { refreshToken: null });
+    return { message: 'Logout successful' };
   }
 
   verifyEmailDomain(email: string): void {
@@ -91,7 +118,10 @@ export class AuthService {
       throw new ForbiddenException('Access Denied');
     }
 
-    const refreshTokenMatches = await bcrypt.compare(user.refreshToken, refreshToken);
+    const refreshTokenMatches = await bcrypt.compare(
+      user.refreshToken,
+      refreshToken,
+    );
 
     if (!refreshTokenMatches) {
       throw new ForbiddenException('Access Denied');
@@ -100,25 +130,30 @@ export class AuthService {
     const tokens = await this.getTokens(user.id, user.email);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
-    return tokens;
+    return {
+      message: 'Token refreshed successfully',
+      result: tokens,
+    };
   }
 
   async updateRefreshToken(userId: string, refreshToken: string) {
     const hashedRefreshToken = await this.hashData(refreshToken);
-    await this.usersService.update(userId, { refreshToken: hashedRefreshToken });
+    await this.usersService.update(userId, {
+      refreshToken: hashedRefreshToken,
+    });
   }
 
-  async getTokens(userId: string, username: string) {   
+  async getTokens(userId: string, email: string) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: userId, username },
+        { sub: userId, email },
         {
           secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
           expiresIn: '1h',
         },
       ),
       this.jwtService.signAsync(
-        { sub: userId, username },
+        { sub: userId, email },
         {
           secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
           expiresIn: '7d',

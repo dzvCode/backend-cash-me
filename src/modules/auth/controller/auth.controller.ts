@@ -2,13 +2,14 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Post,
   Req,
   Res,
   UseGuards,
-  UseInterceptors
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TransformInterceptor } from 'src/interceptors/TransformInterceptor';
 import { GoogleAuthGuard } from 'src/modules/auth/guards/google-auth.guard';
 import { AuthService } from 'src/modules/auth/services/auth.service';
@@ -19,6 +20,7 @@ import { AccessTokenGuard } from '../guards/access-token.guard';
 import { Request } from 'express';
 import { RefreshTokenGuard } from '../guards/refresh-token.guard';
 
+@ApiBearerAuth()
 @ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(TransformInterceptor)
@@ -37,42 +39,30 @@ export class AuthController {
 
   @Get('/google/callback')
   @UseGuards(GoogleAuthGuard)
-  googleAuthRedirect(@Req() req, @Res() res) {
-    console.log('req user', req.user);
-
-    // Redirect the user based on authentication status
-    if (req.user) {
-      // User is authenticated, redirect to a success page
-      return res.redirect('/success');
-    } else {
-      // User is not authenticated, redirect to an error page
-      return res.redirect('/error');
-    }
+  async googleAuthRedirect(@Req() req) {
+    return await this.authService.googleLogin(req);    
   }
 
   @Post('/login')
   @ApiOperation({ summary: 'Login with email and password ' })
-  @ApiResponse({ status: 200, description: 'Login successful' })  
-  async login(@Body() loginDto: LoginDto) {    
-    const data = await this.authService.loginWithEmail(loginDto);
-    return { message: 'Login successful', result: data };
+  @ApiResponse({ status: 200, description: 'Login successful' })
+  async login(@Body() loginDto: LoginDto) {
+    return await this.authService.login(loginDto);
   }
 
   @Post('/register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 200, description: 'User registered successfully' })
-  async register(@Body() createUserDto: CreateUserDto) {    
-    const result = await this.authService.register(createUserDto);
-    return { message: 'User registered successfully', result };
+  async register(@Body() createUserDto: CreateUserDto) {
+    return await this.authService.register(createUserDto);
   }
 
   @UseGuards(AccessTokenGuard)
   @Get('/logout')
   @ApiOperation({ summary: 'Logout the current user' })
   @ApiResponse({ status: 200, description: 'Logout successful' })
-  logout(@Req() req: Request) {    
-    this.authService.logout(req.user['sub']);
-    return { message: 'Logout successful' };
+  logout(@Req() req: Request) {
+    return this.authService.logout(req.user['sub']);
   }
 
   @UseGuards(RefreshTokenGuard)
@@ -82,7 +72,6 @@ export class AuthController {
   refresh(@Req() req: Request) {
     const userId = req.user['sub'];
     const refreshToken = req.user['refreshToken'];
-    const data = this.authService.refreshToken(userId, refreshToken);
-    return { message: 'Token refreshed successfully', result: data };
+    return this.authService.refreshToken(userId, refreshToken);
   }
 }
