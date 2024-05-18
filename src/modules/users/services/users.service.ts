@@ -7,6 +7,7 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { User } from '../interfaces/user.interface';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { UserRole } from 'src/common/enums/user-role.enum';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 /**
@@ -52,7 +53,18 @@ export class UsersService {
    */
   async findByEmailAndPassword(loginDto: LoginDto): Promise<User | undefined> {
     const { email, password } = loginDto;
-    return await this.userModel.findOne({ email, password });
+    
+    const user = await this.userModel.findOne({ email }).exec();
+    if (!user) {
+      return null;
+    }
+    
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    return user;
   }
 
   /**

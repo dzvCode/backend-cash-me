@@ -79,6 +79,12 @@ export class AuthService {
     createUserDto.faculty = studenCodeData.faculty;
     createUserDto.major = studenCodeData.major;
 
+    // Hash the password before creating the user
+    if (createUserDto.password) {
+      const salt = await bcrypt.genSalt();
+      createUserDto.password = await bcrypt.hash(createUserDto.password, salt);
+    }
+
     const newUser = await this.usersService.create(createUserDto);
     const tokens = await this.getTokens(newUser.id, newUser.email, newUser.role);
     await this.updateRefreshToken(newUser.id, tokens.refreshToken);
