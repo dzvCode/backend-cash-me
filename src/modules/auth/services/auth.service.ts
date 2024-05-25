@@ -21,6 +21,8 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
+  private blacklistedTokens: { [key: string]: boolean } = {};
+
   async login(data: LoginDto) {
     const user = await this.usersService.findByEmailAndPassword(data);
 
@@ -126,13 +128,15 @@ export class AuthService {
     }
 
     const refreshTokenMatches = await bcrypt.compare(
-      user.refreshToken,
       refreshToken,
+      user.refreshToken,
     );
 
     if (!refreshTokenMatches) {
       throw new ForbiddenException('Access Denied');
     }
+
+    await this.blacklistedToken(refreshToken);
 
     const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
@@ -171,7 +175,15 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async hashData(data: string) {
+  private async hashData(data: string) {
     return await bcrypt.hash(data, 10);
+  }
+
+  private async blacklistedToken(token: string) {
+    this.blacklistedTokens[token] = true;
+  }
+
+  private isTokenBlacklisted(token: string) {
+    return this.blacklistedTokens[token] === true;
   }
 }
