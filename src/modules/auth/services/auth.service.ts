@@ -79,6 +79,12 @@ export class AuthService {
     createUserDto.faculty = studenCodeData.faculty;
     createUserDto.major = studenCodeData.major;
 
+    // Hash the password before creating the user
+    if (createUserDto.password) {
+      const salt = await bcrypt.genSalt();
+      createUserDto.password = await bcrypt.hash(createUserDto.password, salt);
+    }
+
     const newUser = await this.usersService.create(createUserDto);
     const tokens = await this.getTokens(newUser.id, newUser.email, newUser.role);
     await this.updateRefreshToken(newUser.id, tokens.refreshToken);
@@ -120,13 +126,13 @@ export class AuthService {
     }
 
     const refreshTokenMatches = await bcrypt.compare(
-      user.refreshToken,
       refreshToken,
+      user.refreshToken,
     );
 
     if (!refreshTokenMatches) {
       throw new ForbiddenException('Access Denied');
-    }
+    }    
 
     const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
@@ -165,7 +171,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async hashData(data: string) {
+  private async hashData(data: string) {
     return await bcrypt.hash(data, 10);
   }
 }

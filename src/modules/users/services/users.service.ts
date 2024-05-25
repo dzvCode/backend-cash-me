@@ -7,6 +7,7 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { User } from '../interfaces/user.interface';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { UserRole } from 'src/common/enums/user-role.enum';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 /**
@@ -52,7 +53,18 @@ export class UsersService {
    */
   async findByEmailAndPassword(loginDto: LoginDto): Promise<User | undefined> {
     const { email, password } = loginDto;
-    return await this.userModel.findOne({ email, password });
+    
+    const user = await this.userModel.findOne({ email }).exec();
+    if (!user) {
+      return null;
+    }
+    
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    return user;
   }
 
   /**
@@ -114,6 +126,16 @@ export class UsersService {
   }
 
   /**
+   * Updates a user partially by ID.
+   * @param id - The ID of the user to update.
+   * @param updateUserDto - The updated user data.
+   * @returns A promise that resolves to the updated user.
+   */
+  async partialUpdate(id: string, updateUserDto: Partial<UpdateUserDto>): Promise<User> {
+    return this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true }).exec();
+  }
+
+  /**
    * Deletes a user by ID.
    * @param id - The ID of the user to delete.
    * @returns A promise that resolves to the deleted user.
@@ -130,6 +152,14 @@ export class UsersService {
 
     user.role = role;
     return user.save();
+  }
+
+  /**
+   * Gets all users.
+   * @returns A promise that resolves to an array of users.
+   */
+  async findAll(): Promise<User[]> {
+    return this.userModel.find().exec();
   }
 
   /**

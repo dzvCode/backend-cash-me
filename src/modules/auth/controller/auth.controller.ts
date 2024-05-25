@@ -2,36 +2,27 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Post,
   Req,
-  Res,
   UseGuards,
-  UseInterceptors,
+  UseInterceptors
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
+import { Request } from 'express';
 import { GoogleAuthGuard } from 'src/common/guards/google-auth.guard';
+import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
 import { AuthService } from 'src/modules/auth/services/auth.service';
 import { CreateUserDto } from 'src/modules/users/dtos/create-user.dto';
-import { UsersService } from 'src/modules/users/services/users.service';
-import { LoginDto } from '../dtos/login.dto';
 import { AccessTokenGuard } from '../../../common/guards/access-token.guard';
-import { Request } from 'express';
 import { RefreshTokenGuard } from '../../../common/guards/refresh-token.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { UserRole } from 'src/common/enums/user-role.enum';
+import { LoginDto } from '../dtos/login.dto';
 
 @ApiBearerAuth()
 @ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(TransformInterceptor)
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private authService: AuthService) {}
 
   @Get('/google')  
   @UseGuards(GoogleAuthGuard)  
