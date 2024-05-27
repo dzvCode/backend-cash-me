@@ -39,7 +39,7 @@ export class AuthController {
 
   @Post('/login')
   @ApiOperation({ summary: 'Login with email and password ' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 201, description: 'Login successful' })
   async login(@Body() loginDto: LoginDto) {
     return await this.authService.login(loginDto);
   }

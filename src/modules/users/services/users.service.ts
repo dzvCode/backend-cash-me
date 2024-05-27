@@ -110,7 +110,7 @@ export class UsersService {
       body: new URLSearchParams(formData).toString(),
     });
 
-    return this.parseAlumno(await alumnoHtml.text(), url);
+    return this.parseAlumno(await alumnoHtml.text());
   }
 
   /**
@@ -189,9 +189,8 @@ export class UsersService {
    * @param baseUrl - The base URL of the website.
    * @returns The parsed student data.
    */
-  private parseAlumno(html: string, baseUrl: string): any {
-    const $ = cheerio.load(html);
-    const emptyImage = 'imagenes-UNMSM/sinimg.jpg';
+  private parseAlumno(html: string): any {
+    const $ = cheerio.load(html);    
     const faculty = this.normalizeName(
       $('input[name="ctl00$ContentPlaceHolder1$txtFacultad"]')
         .val()
@@ -204,14 +203,13 @@ export class UsersService {
     );
     const photo = $('img[id="ctl00_ContentPlaceHolder1_imgAlumno"]').attr(
       'src',
-    );
-    const userPhoto = photo === emptyImage ? '' : baseUrl + photo;
+    );    
 
     if (!faculty || !major) {
       return null;
     }
 
-    return { faculty, major, userPhoto };
+    return { faculty, major, photo };
   }
 
   /**

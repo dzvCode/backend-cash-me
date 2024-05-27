@@ -33,8 +33,7 @@ export class AuthService {
     const { accessToken, refreshToken } = tokens;
     const userResponse: LoginResponseDto = {
       accessToken,
-      refreshToken,      
-      user,
+      refreshToken      
     };
 
     return {
@@ -54,8 +53,7 @@ export class AuthService {
 
     const user: LoginResponseDto = {
       accessToken,
-      refreshToken,      
-      user: req.user,
+      refreshToken      
     };
 
     return {
