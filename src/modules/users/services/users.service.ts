@@ -24,15 +24,11 @@ export class UsersService {
    */
   async create(user: CreateUserDto): Promise<User> {
     user.firstName = this.normalizeName(user.firstName);
-    user.lastName = this.normalizeName(user.lastName);
-    const extractedData = await this.scrapeAlumno(user.studentCode);
+    user.lastName = this.normalizeName(user.lastName);  
 
     const newUser = new this.userModel({
-      ...user,
-      faculty: extractedData?.faculty,
-      major: extractedData?.major,
-      userPhoto: extractedData?.userPhoto ?? user.userPhoto,
-      role: user.role || UserRole.USER,
+      ...user,      
+      role: UserRole.USER,
     });
     return await newUser.save();
   }
@@ -110,7 +106,7 @@ export class UsersService {
       body: new URLSearchParams(formData).toString(),
     });
 
-    return this.parseAlumno(await alumnoHtml.text());
+    return this.parseAlumno(await alumnoHtml.text(), url);
   }
 
   /**
@@ -189,7 +185,7 @@ export class UsersService {
    * @param baseUrl - The base URL of the website.
    * @returns The parsed student data.
    */
-  private parseAlumno(html: string): any {
+  private parseAlumno(html: string, baseUrl: string): any {
     const $ = cheerio.load(html);    
     const faculty = this.normalizeName(
       $('input[name="ctl00$ContentPlaceHolder1$txtFacultad"]')
@@ -203,13 +199,15 @@ export class UsersService {
     );
     const photo = $('img[id="ctl00_ContentPlaceHolder1_imgAlumno"]').attr(
       'src',
-    );    
+    );
+    
+    const userPhoto = baseUrl + photo;
 
     if (!faculty || !major) {
       return null;
     }
 
-    return { faculty, major, photo };
+    return { faculty, major, userPhoto };
   }
 
   /**
