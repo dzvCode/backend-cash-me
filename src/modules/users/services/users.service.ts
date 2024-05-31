@@ -24,15 +24,11 @@ export class UsersService {
    */
   async create(user: CreateUserDto): Promise<User> {
     user.firstName = this.normalizeName(user.firstName);
-    user.lastName = this.normalizeName(user.lastName);
-    const extractedData = await this.scrapeAlumno(user.studentCode);
+    user.lastName = this.normalizeName(user.lastName);  
 
     const newUser = new this.userModel({
-      ...user,
-      faculty: extractedData?.faculty,
-      major: extractedData?.major,
-      userPhoto: extractedData?.userPhoto ?? user.userPhoto,
-      role: user.role || UserRole.USER,
+      ...user,      
+      role: UserRole.USER,
     });
     return await newUser.save();
   }
@@ -190,8 +186,7 @@ export class UsersService {
    * @returns The parsed student data.
    */
   private parseAlumno(html: string, baseUrl: string): any {
-    const $ = cheerio.load(html);
-    const emptyImage = 'imagenes-UNMSM/sinimg.jpg';
+    const $ = cheerio.load(html);    
     const faculty = this.normalizeName(
       $('input[name="ctl00$ContentPlaceHolder1$txtFacultad"]')
         .val()
@@ -205,7 +200,8 @@ export class UsersService {
     const photo = $('img[id="ctl00_ContentPlaceHolder1_imgAlumno"]').attr(
       'src',
     );
-    const userPhoto = photo === emptyImage ? '' : baseUrl + photo;
+    
+    const userPhoto = baseUrl + photo;
 
     if (!faculty || !major) {
       return null;

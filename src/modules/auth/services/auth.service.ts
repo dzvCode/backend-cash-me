@@ -33,8 +33,7 @@ export class AuthService {
     const { accessToken, refreshToken } = tokens;
     const userResponse: LoginResponseDto = {
       accessToken,
-      refreshToken,      
-      user,
+      refreshToken      
     };
 
     return {
@@ -54,8 +53,7 @@ export class AuthService {
 
     const user: LoginResponseDto = {
       accessToken,
-      refreshToken,      
-      user: req.user,
+      refreshToken      
     };
 
     return {
@@ -68,16 +66,18 @@ export class AuthService {
     this.verifyEmailDomain(createUserDto.email);
     await this.userExists(createUserDto.email, createUserDto.googleId);
 
-    const studenCodeData = await this.usersService.scrapeAlumno(
+    const extractedStudentData = await this.usersService.scrapeAlumno(
       createUserDto.studentCode,
     );
 
-    if (!studenCodeData) {
+    if (!extractedStudentData) {
       throw new NotFoundException('Invalid student code');
     }
 
-    createUserDto.faculty = studenCodeData.faculty;
-    createUserDto.major = studenCodeData.major;
+    // Assign the scraped data to the user
+    createUserDto.faculty = extractedStudentData.faculty;
+    createUserDto.major = extractedStudentData.major;
+    createUserDto.userPhoto = extractedStudentData.userPhoto;
 
     // Hash the password before creating the user
     if (createUserDto.password) {

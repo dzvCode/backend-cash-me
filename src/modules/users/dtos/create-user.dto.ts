@@ -40,8 +40,8 @@ export class CreateUserDto {
     @IsOptional()
     @IsString()
     password?: string;
-
-    @ApiProperty()
+    
+    @Exclude()
     @IsOptional()
     @IsEnum(UserRole)
     role?: UserRole;
