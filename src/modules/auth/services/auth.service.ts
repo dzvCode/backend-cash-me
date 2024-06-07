@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -74,6 +75,8 @@ export class AuthService {
       throw new NotFoundException('Invalid student code');
     }
 
+
+
     // Assign the scraped data to the user
     createUserDto.faculty = extractedStudentData.faculty;
     createUserDto.major = extractedStudentData.major;
@@ -115,7 +118,7 @@ export class AuthService {
       email ?? '',
     );
     if (user) {
-      throw new UnauthorizedException('User already exists');
+      throw new ConflictException('User already exists');
     }
   }
 
