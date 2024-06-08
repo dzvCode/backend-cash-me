@@ -11,13 +11,13 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
 import { Auth } from 'src/common/decorators/auth.decorator';
 import { UserRole } from 'src/common/enums/user-role.enum';
 import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
+import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
 import { User } from '../models/user.model';
 import { UsersService } from '../services/users.service';
-import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
-import { Request } from 'express';
 
 @ApiBearerAuth()
 @ApiTags('users')
@@ -89,7 +89,7 @@ export class UsersController {
       };
     } catch (error) {
       return {
-        message: 'Failed to update role',
+        message: error.message,
         error: error.message,
       };
     }
