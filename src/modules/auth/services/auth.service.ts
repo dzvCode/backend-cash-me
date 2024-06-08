@@ -13,6 +13,7 @@ import { UsersService } from '../../users/services/users.service';
 import { LoginResponseDto } from '../dtos/login-response.dto';
 import { LoginDto } from '../dtos/login.dto';
 import { UserRole } from 'src/common/enums/user-role.enum';
+import { UserCodeScrape } from 'src/common/scrape/user-code.scrape';
 
 @Injectable()
 export class AuthService {
@@ -67,15 +68,13 @@ export class AuthService {
     this.verifyEmailDomain(createUserDto.email);
     await this.userExists(createUserDto.email, createUserDto.googleId);
 
-    const extractedStudentData = await this.usersService.scrapeAlumno(
+    const extractedStudentData = await UserCodeScrape.scrapeAlumno(
       createUserDto.studentCode,
     );
 
     if (!extractedStudentData) {
       throw new NotFoundException('Invalid student code');
     }
-
-
 
     // Assign the scraped data to the user
     createUserDto.faculty = extractedStudentData.faculty;
