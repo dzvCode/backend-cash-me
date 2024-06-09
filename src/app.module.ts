@@ -8,6 +8,8 @@ import { GoogleStrategy } from './modules/auth/strategies/google.strategy';
 import { ChatModule } from './modules/chat/chat.module';
 import { UsersModule } from './modules/users/users.module';
 import { StudentsModule } from './modules/students/students.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
+import { TransactionsService } from './modules/transactions/services/transactions.service';
 
 @Module({
   imports: [
@@ -17,6 +19,7 @@ import { StudentsModule } from './modules/students/students.module';
     UsersModule,
     ChatModule,
     StudentsModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService, GoogleStrategy],
