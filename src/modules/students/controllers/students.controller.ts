@@ -14,35 +14,11 @@ export class StudentsController {
 
   @Post('verify-code')
   async studenDataByCode(@Body() student: CreateStudentCodeDto) {
-    try {
-      const result = await this.studentsService.studentDataByCode(student.code);
-      return {
-        message: 'Student data fetched successfully',
-        result: result,
-      };
-    } catch (error) {
-      return {
-        message: error.message,
-        error: error.message,
-      };
-    }
+      return await this.studentsService.studentDataByCode(student.code);
   }
 
   @Post('/verify-email')
   async validateStudentEmail(@Body() student: CreateStudentEmailDto) {
-    try {
-      const result = await this.studentsService.validateStudentEmail(
-        student.email,
-      );
-      return {
-        message: 'Student email exists',
-        result: result,
-      };
-    } catch (error) {
-      return {        
-        message: error.message,
-        error: error.message,
-      };
-    }
+    return await this.studentsService.validateStudentEmail(student.email);
   }
 }
