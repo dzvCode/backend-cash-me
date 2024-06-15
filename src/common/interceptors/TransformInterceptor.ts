@@ -3,6 +3,7 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  HttpStatus,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
@@ -10,7 +11,7 @@ import { map } from 'rxjs/operators';
 
 export interface Response<T> {
   statusCode: number;
-  message: string;
+  message?: string;
   data: T;
 }
 
@@ -24,17 +25,28 @@ export class TransformInterceptor<T>
     next: CallHandler,
   ): Observable<Response<T>> {
     return next.handle().pipe(
-      map((data) => ({
-        statusCode: context.switchToHttp().getResponse().statusCode,        
-        message:
-          this.reflector.get<string>(
-            'response_message',
-            context.getHandler(),
-          ) ||
-          data.message ||
-          '',
-        data: data.result || null,
-      })),
+      map((data) => {
+        let statusCode = data.statusCode; // Check if statusCode is provided in data object
+
+        // If statusCode is not provided in data object, get it from context
+        if (!statusCode) {
+          const response = context.switchToHttp().getResponse();
+          statusCode = response.statusCode;
+        }    
+
+        const message = this.reflector.get<string>('response_message', context.getHandler()) || data.message;
+        
+        const responseData: Response<T> = {
+          statusCode: statusCode || HttpStatus.OK,
+          data: data.result || null,
+        };
+
+        if (message) {
+          responseData.message = message;
+        }
+
+        return responseData;
+      }),
     );
   }
 }
