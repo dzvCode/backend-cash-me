@@ -34,6 +34,9 @@ export class TransactionsController {
   }
 
   @Put(":id")
+  @ApiOperation({ summary: 'Update transaction' })
+  @ApiOkResponse({ status: HttpStatus.OK, description: 'Transaction updated successfully' })
+  @ApiNotFoundResponse({ status: HttpStatus.NOT_FOUND, description: 'Transaction not found' })
   async updateTransaction(@Req() req) {
     return await this.transactionsService.updateTransactionStatus(req.params.id, req.body.approverCode, req.body.status);
   }
