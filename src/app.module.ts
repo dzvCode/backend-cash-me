@@ -9,6 +9,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { UsersModule } from './modules/users/users.module';
 import { StudentsModule } from './modules/students/students.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
+import { RoomsModule } from './modules/rooms/rooms.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
     AuthModule,
     UsersModule,
     ChatModule,
+    RoomsModule,
     StudentsModule,
     TransactionsModule,
   ],

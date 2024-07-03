@@ -61,11 +61,11 @@ export class UsersController {
     }
   }
 
-  @Auth(UserRole.ADMIN)
+  @UseGuards(AccessTokenGuard)
   @Get(':id')
   async findById(@Param('id') id: string) {
     try {
-      const result = await this.usersService.findById(id);
+      const result = (await this.usersService.findById(id));
       return {
         message: 'User fetched successfully',
         result: result,
