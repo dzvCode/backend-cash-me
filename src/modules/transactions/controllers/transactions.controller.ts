@@ -4,6 +4,8 @@ import { Transaction } from '../models/transaction.model';
 import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
 import { CreateTransactionDto } from '../dtos/create-transaction.dto';
+import { filter } from 'cheerio/lib/api/traversing';
+import { TransactionFiltersDto } from '../dtos/transaction-filters.dto';
 
 @ApiTags('transactions')
 @Controller('transactions')
@@ -41,4 +43,21 @@ export class TransactionsController {
     return await this.transactionsService.updateTransactionStatus(req.params.id, req.body.approverCode, req.body.status);
   }
 
+  @Put("/v2/:id")
+  @ApiOperation({ summary: 'Update transaction' })
+  @ApiOkResponse({ status: HttpStatus.OK, description: 'Transaction updated successfully' })
+  @ApiNotFoundResponse({ status: HttpStatus.NOT_FOUND, description: 'Transaction not found' })
+  async updateTransactionV2(@Req() req) {
+    return await this.transactionsService.updateTransactionStatus(req.params.id, req.body.approverCode, req.body.status);
+  }
+
+  @Get('/all')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all transactions v2' })
+  @ApiOkResponse({ description: 'Successfully retrieved list of transactions. v2', type: [Transaction] })
+  @ApiNotFoundResponse({ description: 'No transactions found. v2' })
+  async getAllTransactionsV2(@Body() filtersDto: TransactionFiltersDto){
+    console.log('filtersDto', filtersDto)
+    return await this.transactionsService.getAllTransactionsV2(filtersDto);
+  }
 }

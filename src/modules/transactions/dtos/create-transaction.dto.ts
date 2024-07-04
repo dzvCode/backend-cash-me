@@ -12,7 +12,7 @@ export class CreateTransactionDto {
   status: TransactionStatus;
 
   @ApiProperty()
-  typeOperation: TransactionType;
+  operationType: TransactionType;
 
   @ApiProperty()
   longitude: number;
