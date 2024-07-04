@@ -56,8 +56,7 @@ export class TransactionsController {
   @ApiOperation({ summary: 'Get all transactions v2' })
   @ApiOkResponse({ description: 'Successfully retrieved list of transactions. v2', type: [Transaction] })
   @ApiNotFoundResponse({ description: 'No transactions found. v2' })
-  async getAllTransactionsV2(@Body() filtersDto: TransactionFiltersDto){
-    console.log('filtersDto', filtersDto)
+  async getAllTransactionsV2(@Query() filtersDto: TransactionFiltersDto){
     return await this.transactionsService.getAllTransactionsV2(filtersDto);
   }
 }

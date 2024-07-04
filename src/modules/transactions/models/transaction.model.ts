@@ -5,7 +5,7 @@ import { TransactionStatus, TransactionType } from "src/common/enums/transaction
 
 export type TransactionDocument = Transaction & Document;
 
-@Schema({ versionKey: false })
+@Schema({ timestamps: true, versionKey: false })
 export class Transaction {
   @Prop({ required: true })
   @ApiProperty({ example: 20200097, description: 'Student code of the transaction initiator' }) 
@@ -36,14 +36,6 @@ export class Transaction {
     type: string,
     coordinates: number[],
   };
-
-  @Prop({ default: Date.now })
-  @ApiProperty({ example: '2024-06-13T10:00:00Z', description: 'The date and time the transaction was created' })
-  created_at: Date;
-
-  @Prop({ default: Date.now })
-  @ApiProperty({ example: '2024-06-13T10:00:00Z', description: 'The date and time the transaction was last updated' })
-  updated_at: Date;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);
