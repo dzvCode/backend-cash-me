@@ -1,35 +1,34 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsBoolean, IsNumber, IsOptional } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class TransactionFiltersDto {
   @IsOptional()
-  @IsBoolean()
-  @Type(() => Boolean)
-  @ApiProperty()
-  excludeSelf?: boolean;
+  @IsNumber()
+  @Type(() => Number)
+  @ApiPropertyOptional()
+  initiatorCode?: number;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional()
+  excludeSelf?: string;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @ApiProperty()
+  @ApiPropertyOptional()
+  approverCode?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @ApiPropertyOptional()
   status?: number;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @ApiProperty()
+  @ApiPropertyOptional()
   operationType?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  @ApiProperty()
-  initiatorCode?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  @ApiProperty()
-  receiverCode?: number;
 }

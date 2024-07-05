@@ -5,6 +5,8 @@ import { Model } from 'mongoose';
 import { TransactionStatus, TransactionType } from 'src/common/enums/transaction.enum';
 import { CreateTransactionDto } from '../dtos/create-transaction.dto';
 import { TransactionFiltersDto } from '../dtos/transaction-filters.dto';
+import { not } from 'cheerio/lib/api/traversing';
+import e from 'express';
 
 @Injectable()
 export class TransactionsService {
@@ -68,29 +70,6 @@ export class TransactionsService {
       }
   }
 
-  async getAllTransactions(studentCodeToExclude: number, status?: number) {
-    const query: any = { initiatorCode: { $ne: studentCodeToExclude } };
-    let message: string;
-
-    // Add the status condition if status is provided
-    if (status !== undefined) {
-      query.status = status;
-    }
-  
-    const transactions = await this.transactionModel.find(query).exec();
-    const totalCount = transactions.length;
-
-    message = (!transactions || totalCount === 0) ? 'No transactions found for the provided filters' : 'Transactions fetched successfully';
-    
-    return { 
-      message,
-      result: {
-        count: totalCount, 
-        transactions 
-      } 
-    }
-         
-  }
 
   // update transaction status and add the student code of the student who approved the transaction
   async updateTransactionStatus(transactionId: string, approverCode: number, status: TransactionStatus) {
@@ -124,8 +103,9 @@ export class TransactionsService {
     };
   }
 
-  async getAllTransactionsV2(filtersDto: TransactionFiltersDto) {
+  async getAllTransactions(filtersDto?: TransactionFiltersDto) {
     const query: any = {};
+    const errors: string[] = [];
         
     // Add other filters if provided
     for (const key in filtersDto) {
@@ -134,11 +114,35 @@ export class TransactionsService {
       }
     }
 
-    // Exclude the student code if provided
-    if (filtersDto.excludeSelf) {
-      query.initiatorCode = { $ne: filtersDto.initiatorCode };
+    // Exclude the initiator from the list if excludeSelf is true
+    if (filtersDto.excludeSelf !== undefined && filtersDto.excludeSelf.toLowerCase() === 'true') {
+      query.initiatorCode = { $ne: query.initiatorCode };
     }
-   
+
+    if (filtersDto.initiatorCode !== undefined && filtersDto.initiatorCode.toString().length !== 8) {
+      errors.push('Invalid initiatorCode provided for fetching transactions. Initiator code must be 8 digits');
+    }
+
+    if (query.approverCode !== undefined && query.approverCode.toString().length !== 8) {
+      errors.push('Invalid approverCode provided for fetching transactions. Approver code must be 8 digits');
+    }
+
+    if (query.status !== undefined && !Object.values(TransactionStatus).includes(query.status)) {
+      errors.push('Invalid status provided for fetching transactions');
+    }
+
+    if (query.operationType !== undefined && !Object.values(TransactionType).includes(query.operationType)) {
+      errors.push('Invalid operationType provided for fetching transactions');
+    }
+
+    if (filtersDto.excludeSelf !== undefined && filtersDto.excludeSelf.toLowerCase() !== 'true' && filtersDto.excludeSelf.toLowerCase() !== 'false') {
+      errors.push('Invalid excludeSelf provided for fetching transactions. It must be a boolean');
+    }
+    
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
     const transactions = await this.transactionModel.find(query).exec();
     const totalCount = transactions.length;
 

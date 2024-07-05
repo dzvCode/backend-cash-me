@@ -27,12 +27,10 @@ export class TransactionsController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all transactions' })
-  @ApiQuery({ name: 'studentCodeToExclude', required: false, type: Number, description: 'Student code to exclude from results' })
-  @ApiQuery({ name: 'status', required: false, type: Number, description: 'Status of the transactions to filter by' })
-  @ApiOkResponse({ description: 'Successfully retrieved list of transactions.', type: [Transaction] })
+  @ApiOkResponse({ description: 'Successfully retrieved list of transactions based on filters.', type: [Transaction] })
   @ApiNotFoundResponse({ description: 'No transactions found.' })
-  async getAllTransactions(@Query('studentCodeToExclude') studentCodeToExclude: number, @Query('status') status?: number) {
-    return await this.transactionsService.getAllTransactions(studentCodeToExclude, status);
+  async getAllTransactions(@Query() filtersDto?: TransactionFiltersDto){
+    return await this.transactionsService.getAllTransactions(filtersDto);
   }
 
   @Put(":id")
@@ -51,12 +49,4 @@ export class TransactionsController {
     return await this.transactionsService.updateTransactionStatus(req.params.id, req.body.approverCode, req.body.status);
   }
 
-  @Get('/all')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all transactions v2' })
-  @ApiOkResponse({ description: 'Successfully retrieved list of transactions. v2', type: [Transaction] })
-  @ApiNotFoundResponse({ description: 'No transactions found. v2' })
-  async getAllTransactionsV2(@Query() filtersDto: TransactionFiltersDto){
-    return await this.transactionsService.getAllTransactionsV2(filtersDto);
-  }
 }
