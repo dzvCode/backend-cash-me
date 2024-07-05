@@ -25,9 +25,9 @@ export class AppController {
     return { message: 'Authentication successful' };
   }
 
-  // @Get('/error')
-  // errorPage() {
-  //   // Render an error page or return a JSON response indicating error
-  //   return { message: 'Authentication failed' };
-  // }
+  @Get('/error')
+  errorPage() {
+    // Render an error page or return a JSON response indicating error
+    return { message: 'Authentication failed' };
+  }
 }

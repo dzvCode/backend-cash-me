@@ -6,7 +6,7 @@ import { wsAuthMiddleware } from 'src/common/middleware/ws-auth.middleware';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 
-@WebSocketGateway(800, {
+@WebSocketGateway({
   namespace: '/chats',
 })
 
