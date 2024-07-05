@@ -5,8 +5,7 @@ import { Model } from 'mongoose';
 import { TransactionStatus, TransactionType } from 'src/common/enums/transaction.enum';
 import { CreateTransactionDto } from '../dtos/create-transaction.dto';
 import { TransactionFiltersDto } from '../dtos/transaction-filters.dto';
-import { not } from 'cheerio/lib/api/traversing';
-import e from 'express';
+import { UpdateTransactionDto } from '../dtos/update-transaction.dto';
 
 @Injectable()
 export class TransactionsService {
@@ -70,39 +69,6 @@ export class TransactionsService {
       }
   }
 
-
-  // update transaction status and add the student code of the student who approved the transaction
-  async updateTransactionStatus(transactionId: string, approverCode: number, status: TransactionStatus) {
-    const transaction = await this.transactionModel.findById(transactionId).exec();
-    let prevStatus = transaction.status;
-   
-    if (prevStatus === status) {
-      throw new BadRequestException('Transaction status is already ' + TransactionStatus[status]);
-    }   
-    
-    let message: string;
-    let result: any;
-
-    if (!transaction) {
-      throw new NotFoundException('Transaction not found');
-    }
-
-    if (!Object.values(TransactionStatus).includes(status)) {
-      throw new BadRequestException('Invalid status provided for updating transaction');
-    }
-
-    transaction.status = status;
-    transaction.approverCode = approverCode;
-    await transaction.save();
-
-    message = `Transaction status updated successfully from ${TransactionStatus[prevStatus]} to ${TransactionStatus[status]}`;
-    result = transaction;
-    return {
-      message,
-      result,
-    };
-  }
-
   async getAllTransactions(filtersDto?: TransactionFiltersDto) {
     const query: any = {};
     const errors: string[] = [];
@@ -158,24 +124,56 @@ export class TransactionsService {
   }
 
   // Update transaction status and add the student code of the student who approved the transaction
-  async updateTransactionStatusV2(transactionId: string, approverCode: number, status: TransactionStatus) {
-    if (![TransactionStatus.APPROVED, TransactionStatus.REJECTED].includes(status)) {
-      throw new BadRequestException('Invalid status provided for updating transaction');
+  async updateTransactionStatus(transactionId: string, updateTransactionDto: UpdateTransactionDto) {
+    // Find the transaction first to get the current status
+    const currentTransaction = await this.transactionModel.findById(transactionId).exec();
+
+    if (!currentTransaction) {
+      throw new NotFoundException('Transaction not found');
     }
 
-    const transaction = await this.transactionModel.findOneAndUpdate(
-      { _id: transactionId, status: TransactionStatus.PENDING },
-      { $set: { status, approverCode, updatedAt: new Date() } },
+    if (currentTransaction.approverCode !== undefined) {
+      throw new BadRequestException('Transaction already has an approver code. Cannot update transaction status.');
+    }
+  
+    const errors: string[] = [];
+
+    // Check if initiator code is valid
+    if (updateTransactionDto.approverCode.toString().length !== 8) {
+      errors.push('Invalid approverCode provided for updating transaction. Approver code must be 8 digits');
+    }
+
+    // Check if the new status is valid
+    if (!Object.values(TransactionStatus).includes(updateTransactionDto.status)) {
+      errors.push('Invalid status provided for updating transaction');
+    }
+
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
+    // Check if the status and approver code are unchanged
+    if (currentTransaction.status === updateTransactionDto.status) {
+      return {
+        message: `The transaction status is already ${TransactionStatus[updateTransactionDto.status]}. No changes made.`,
+        result: currentTransaction,
+      };
+    }
+  
+    // Save the previous status
+    const previousStatus = currentTransaction.status;
+  
+    // Proceed with the update
+    const updatedTransaction = await this.transactionModel.findOneAndUpdate(
+      { _id: transactionId },
+      { $set: { status: updateTransactionDto.status, approverCode: updateTransactionDto.approverCode } },
       { new: true }
     ).exec();
-
-    if (!transaction) {
-      throw new NotFoundException('Transaction not found or it is not pending');
-    }
-
+  
+    // Return the result along with the previous status
     return {
-      message: `Transaction status updated successfully to ${TransactionStatus[status]}`,
-      result: transaction,
+      message: `Transaction status updated successfully from ${TransactionStatus[previousStatus]} to ${TransactionStatus[updateTransactionDto.status]}`,
+      result: updatedTransaction,
     };
   }
 
