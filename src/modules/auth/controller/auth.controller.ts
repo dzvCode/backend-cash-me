@@ -17,6 +17,7 @@ import { AccessTokenGuard } from '../../../common/guards/access-token.guard';
 import { RefreshTokenGuard } from '../../../common/guards/refresh-token.guard';
 import { LoginDto } from '../dtos/login.dto';
 import { OtpService } from 'src/app.otp';
+import { AuthOtpDto } from '../dtos/auth-otp.dto';
 
 @ApiBearerAuth()
 @ApiTags('auth')
@@ -53,8 +54,10 @@ export class AuthController {
   }
 
   @Post('/otp')
-  async generateOtp(@Body() body: { email?: string }): Promise<object> {
-  const email = body.email || 'default-email@example.com'; // Valor predeterminado para pruebas
+  @ApiOperation({ summary: 'Generate OTP' })
+  @ApiResponse({ status: 200, description: 'OTP sent' })
+  async generateOtp(@Body() authOtpDto: AuthOtpDto): Promise<object> {
+  const email = authOtpDto.email
   const result = await this.otpService.sendOtp(email);
   return { message: 'OTP sent', result };
 }

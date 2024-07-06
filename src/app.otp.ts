@@ -9,8 +9,8 @@ export class OtpService {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'tu-correo@gmail.com',
-        pass: 'tu-contraseña',
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
   }
@@ -23,7 +23,7 @@ export class OtpService {
     const otp = this.generateOtp();
     
     const mailOptions = {
-      from: 'tu-correo@gmail.com',
+      from: this.transporter.options.auth.user,
       to: email,
       subject: 'Your OTP Code',
       text: `Your OTP code is ${otp}`,

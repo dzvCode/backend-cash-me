@@ -10,7 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { Auth } from 'src/common/decorators/auth.decorator';
 import { UserRole } from 'src/common/enums/user-role.enum';
@@ -18,6 +18,7 @@ import { AccessTokenGuard } from 'src/common/guards/access-token.guard';
 import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
 import { User } from '../models/user.model';
 import { UsersService } from '../services/users.service';
+import { ChangeRoleDto } from '../dtos/change-role.dto';
 
 @ApiBearerAuth()
 @ApiTags('users')
@@ -65,7 +66,7 @@ export class UsersController {
   @Get(':id')
   async findById(@Param('id') id: string) {
     try {
-      const result = (await this.usersService.findById(id));
+      const result = await this.usersService.findById(id);
       return {
         message: 'User fetched successfully',
         result: result,
@@ -80,9 +81,10 @@ export class UsersController {
 
   @Auth(UserRole.ADMIN)
   @Patch(':id/role')
-  async changeRole(@Param('id') id: string, @Body('role') role: UserRole) {
+  @ApiBody({ type: ChangeRoleDto, description: 'User role' })
+  async changeRole(@Param('id') id: string, @Body('role') changeRoleDto: ChangeRoleDto) {
     try {
-      const result = await this.usersService.changeRole(id, role);
+      const result = await this.usersService.changeRole(id, changeRoleDto.role);
       return {
         message: 'Role updated successfully',
         result: result.role,

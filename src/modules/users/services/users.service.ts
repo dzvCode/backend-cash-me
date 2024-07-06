@@ -24,7 +24,7 @@ export class UsersService {
    */
   async create(user: CreateUserDto): Promise<User> {
     user.firstName = UserCodeScrape.normalizeName(user.firstName);
-    user.lastName =  UserCodeScrape.normalizeName(user.lastName);
+    user.lastName = UserCodeScrape.normalizeName(user.lastName);
 
     const newUser = new this.userModel({
       ...user,
@@ -40,6 +40,15 @@ export class UsersService {
    */
   async findById(id: string): Promise<User | undefined> {
     return await this.userModel.findById(id).select('-role -refreshToken');
+  }
+
+  /**
+   * Finds a user by ID with full data.
+   * @param id - The ID of the user to find.
+   * @returns A promise that resolves to the found user, or undefined if not found
+   */
+  async findByIdFull(id: string): Promise<User | undefined> {
+    return await this.userModel.findById(id);
   }
 
   /**
@@ -127,7 +136,7 @@ export class UsersService {
   /**
    * Changes the role of a user by ID.
    * @param id The ID of the user to change the role.
-   * @param role The new role. 
+   * @param role The new role.
    * @returns A promise that resolves to the updated user.
    */
   async changeRole(id: string, role: UserRole): Promise<User> {
