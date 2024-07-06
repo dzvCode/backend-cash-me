@@ -9,15 +9,15 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { GoogleAuthGuard } from 'src/common/guards/google-auth.guard';
+import { OtpService } from 'src/app.otp';
 import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
 import { AuthService } from 'src/modules/auth/services/auth.service';
 import { CreateUserDto } from 'src/modules/users/dtos/create-user.dto';
 import { AccessTokenGuard } from '../../../common/guards/access-token.guard';
 import { RefreshTokenGuard } from '../../../common/guards/refresh-token.guard';
-import { LoginDto } from '../dtos/login.dto';
-import { OtpService } from 'src/app.otp';
 import { AuthOtpDto } from '../dtos/auth-otp.dto';
+import { LoginDto } from '../dtos/login.dto';
+import { LoginGoogleDto } from '../dtos/login-google.dto';
 
 @ApiBearerAuth()
 @ApiTags('auth')
@@ -26,17 +26,9 @@ import { AuthOtpDto } from '../dtos/auth-otp.dto';
 export class AuthController {
   constructor(private authService: AuthService,  private readonly otpService: OtpService) {}
 
-  @Get('/google')  
-  @UseGuards(GoogleAuthGuard)  
-  googleAuth(@Req() req) {
-    const { user } = req;
-    console.log('req user', user);
-  }
-
-  @Get('/google/callback')  
-  @UseGuards(GoogleAuthGuard)
-  async googleAuthRedirect(@Req() req) {
-    return await this.authService.googleLogin(req);    
+  @Post('/google')      
+  async googleAuth(@Body() loginGoogle: LoginGoogleDto) {
+    return await this.authService.googleLogin(loginGoogle);    
   }
 
   @Post('/login')

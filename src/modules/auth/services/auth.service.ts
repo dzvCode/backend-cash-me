@@ -14,6 +14,7 @@ import { LoginResponseDto } from '../dtos/login-response.dto';
 import { LoginDto } from '../dtos/login.dto';
 import { UserRole } from 'src/common/enums/user-role.enum';
 import { UserCodeScrape } from 'src/common/scrape/user-code.scrape';
+import { LoginGoogleDto } from '../dtos/login-google.dto';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +36,7 @@ export class AuthService {
     const { accessToken, refreshToken } = tokens;
     const userResponse: LoginResponseDto = {
       accessToken,
-      refreshToken      
+      refreshToken,
     };
 
     return {
@@ -44,18 +45,47 @@ export class AuthService {
     };
   }
 
-  async googleLogin(req) {
-    if (!req.user) {
-      throw new UnauthorizedException('Invalid credentials');
+  async googleLogin(loginGoogle: LoginGoogleDto) {
+    const { email, fullName, userPhoto, googleId } = loginGoogle;
+    let userId: string;
+    let role: UserRole;
+    let userEmail: string;
+
+    this.verifyEmailDomain(email);
+
+    const existingUser = await this.usersService.findByGoogleIdOrEmail(
+      googleId,
+      email,
+    );
+
+    const { firstName, lastName } =
+      this.usersService.destructuringUserNames(fullName);
+
+    if (!existingUser) {
+      const user = await this.usersService.create({
+        googleId: googleId,
+        firstName: firstName,
+        lastName: lastName,
+        email,
+        userPhoto: userPhoto,
+      });
+
+      userId = user._id;
+      role = user.role;
+      userEmail = user.email;
+    } else {
+      userId = existingUser._id;
+      role = existingUser.role;
+      userEmail = existingUser.email;
     }
 
-    const tokens = await this.getTokens(req.user._id, req.user.email, req.user.role);
-    await this.updateRefreshToken(req.user._id, tokens.refreshToken);
+    const tokens = await this.getTokens(userId, userEmail, role);
+    await this.updateRefreshToken(userId, tokens.refreshToken);
     const { accessToken, refreshToken } = tokens;
 
     const user: LoginResponseDto = {
       accessToken,
-      refreshToken      
+      refreshToken,
     };
 
     return {
@@ -88,7 +118,11 @@ export class AuthService {
     }
 
     const newUser = await this.usersService.create(createUserDto);
-    const tokens = await this.getTokens(newUser.id, newUser.email, newUser.role);
+    const tokens = await this.getTokens(
+      newUser.id,
+      newUser.email,
+      newUser.role,
+    );
     await this.updateRefreshToken(newUser.id, tokens.refreshToken);
 
     return {
@@ -134,7 +168,7 @@ export class AuthService {
 
     if (!refreshTokenMatches) {
       throw new ForbiddenException('Access Denied');
-    }    
+    }
 
     const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
