@@ -177,10 +177,6 @@ export class TransactionsService {
       errors.push('Transaction has already been approved. Status cannot be updated');
     }
 
-    if (currentTransaction.initiatorCode === updateTransactionDto.approverCode) {
-      errors.push('Approver code cannot be the same as the initiator code');
-    }
-   
     // Check if initiator code is valid
     if (updateTransactionDto.approverCode.toString().length !== 8) {
       errors.push('Invalid approverCode provided for updating transaction. Approver code must be 8 digits');
