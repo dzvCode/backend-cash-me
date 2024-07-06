@@ -6,6 +6,7 @@ import { TransactionStatus, TransactionType } from 'src/common/enums/transaction
 import { CreateTransactionDto } from '../dtos/create-transaction.dto';
 import { TransactionFiltersDto } from '../dtos/transaction-filters.dto';
 import { UpdateTransactionDto } from '../dtos/update-transaction.dto';
+import { append } from 'cheerio/lib/api/manipulation';
 
 @Injectable()
 export class TransactionsService {
@@ -18,6 +19,16 @@ export class TransactionsService {
     let message: string;
     let transaction: any;
     const errors: string[] = [];
+
+    // Check for existing pending transaction for the initiatorCode
+    const existingPendingTransaction = await this.transactionModel.findOne({
+      initiatorCode: createTransactionDto.initiatorCode,
+      status: TransactionStatus.PENDING,
+    });
+
+    if (existingPendingTransaction) {
+      errors.push('Cannot create new transaction. There is already a pending transaction for this initiator.');
+    }
 
     if (!createTransactionDto.latitude) {
       errors.push('Latitude is required for creating transaction.');
@@ -123,6 +134,34 @@ export class TransactionsService {
     }
   }
 
+  async getTransactionsByStudentCode(studentCode: number) {
+    const errors: string[] = [];
+
+    if (studentCode.toString().length !== 8) {
+      errors.push('Invalid student code provided for fetching transactions. Student code must be 8 digits');
+    }
+
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
+    const transactions = await this.transactionModel.find({
+      $or: [{ initiatorCode: studentCode }, { approverCode: studentCode }],
+    }).exec();
+
+    const totalCount = transactions.length;
+
+    const message = (!transactions || totalCount === 0) ? 'No transactions found for the provided student code' : 'Transactions fetched successfully';
+
+    return {
+      message,
+      result: {
+        count: totalCount,
+        transactions,
+      }
+    }
+  }
+
   // Update transaction status and add the student code of the student who approved the transaction
   async updateTransactionStatus(transactionId: string, updateTransactionDto: UpdateTransactionDto) {
     // Find the transaction first to get the current status
@@ -132,12 +171,16 @@ export class TransactionsService {
       throw new NotFoundException('Transaction not found');
     }
 
-    if (currentTransaction.approverCode !== undefined) {
-      throw new BadRequestException('Transaction already has an approver code. Cannot update transaction status.');
-    }
-  
     const errors: string[] = [];
 
+    if (currentTransaction.approverCode !== undefined) {
+      errors.push('Transaction has already been approved. Status cannot be updated');
+    }
+
+    if (currentTransaction.initiatorCode === updateTransactionDto.approverCode) {
+      errors.push('Approver code cannot be the same as the initiator code');
+    }
+   
     // Check if initiator code is valid
     if (updateTransactionDto.approverCode.toString().length !== 8) {
       errors.push('Invalid approverCode provided for updating transaction. Approver code must be 8 digits');

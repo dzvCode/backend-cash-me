@@ -26,11 +26,20 @@ export class TransactionsController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all transactions' })
+  @ApiOperation({ summary: 'Get all transactions with optional filters' })
   @ApiOkResponse({ status: HttpStatus.OK, description: 'Transactions retrieved successfully' , type: [Transaction]})
   @ApiBadRequestResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid data provided for getting transactions.' })
   async getAllTransactions(@Query() filtersDto?: TransactionFiltersDto){
     return await this.transactionsService.getAllTransactions(filtersDto);
+  }
+
+  @Get("/:studentCode")
+  @ApiOperation({ summary: 'Get all transactions by student code' })
+  @ApiOkResponse({ status: HttpStatus.OK, description: 'Transactions retrieved successfully' , type: [Transaction]})
+  @ApiBadRequestResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid data provided for getting transactions.' })
+  @ApiParam({ name: 'studentCode', description: 'Student code' })
+  async getTransactionsByStudentCode(@Param('studentCode', ParseIntPipe) studentCode: number){
+    return await this.transactionsService.getTransactionsByStudentCode(studentCode);
   }
 
   @Put("/:id")
