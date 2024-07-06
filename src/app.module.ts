@@ -24,6 +24,6 @@ import { RoomsModule } from './modules/rooms/rooms.module';
     TransactionsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, GoogleStrategy, OtpService],
+  providers: [AppService, OtpService],
 })
 export class AppModule {}

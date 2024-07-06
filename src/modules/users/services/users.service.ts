@@ -156,4 +156,29 @@ export class UsersService {
   async findAll(): Promise<User[]> {
     return this.userModel.find().exec();
   }
+
+  destructuringUserNames(fullName: string) {
+    //In case the user has 4 names
+    const names = fullName.split(' ');
+    let firstName = names[0] + ' ' + names[1];
+    let lastName = names[names.length - 1] + ' ' + names[names.length - 2];
+
+    if (names.length === 3) {
+      firstName = names[0];
+      lastName = names[2] + ' ' + names[1];
+    }
+
+    if (names.length === 2) {
+      firstName = names[0];
+      lastName = names[1];
+    }
+
+    if (names.length === 1) {
+      firstName = names[0];
+      lastName = '';
+    }
+
+    return { firstName, lastName };
+  }
+
 }
