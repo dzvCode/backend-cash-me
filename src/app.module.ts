@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { OtpService } from './app.otp';
 import { AuthModule } from './modules/auth/auth.module';
 import { GoogleStrategy } from './modules/auth/strategies/google.strategy';
 import { ChatModule } from './modules/chat/chat.module';
@@ -21,6 +22,6 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
     TransactionsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, GoogleStrategy],
+  providers: [AppService, GoogleStrategy, OtpService],
 })
 export class AppModule {}

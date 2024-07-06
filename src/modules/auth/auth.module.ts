@@ -6,12 +6,14 @@ import { AuthController } from './controller/auth.controller';
 import { AuthService } from './services/auth.service';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
   imports: [
     JwtModule.register({}),
     UsersModule,
     PassportModule,
+    OtpModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy],
