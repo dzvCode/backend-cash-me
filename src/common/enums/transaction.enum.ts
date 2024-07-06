@@ -6,6 +6,6 @@ export enum TransactionStatus {
 }
 
 export enum TransactionType {
-  CASH_TO_DIGITAL = 1,
-  DIGITAL_TO_CASH = 2,
+  DIGITAL_TO_CASH = 1,
+  CASH_TO_DIGITAL = 2,
 }

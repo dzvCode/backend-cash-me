@@ -39,7 +39,7 @@ export class UsersService {
    * @returns A promise that resolves to the found user, or undefined if not found.
    */
   async findById(id: string): Promise<User | undefined> {
-    return await this.userModel.findById(id);
+    return await this.userModel.findById(id).select('-role -refreshToken');
   }
 
   /**
