@@ -16,13 +16,14 @@ import { CreateUserDto } from 'src/modules/users/dtos/create-user.dto';
 import { AccessTokenGuard } from '../../../common/guards/access-token.guard';
 import { RefreshTokenGuard } from '../../../common/guards/refresh-token.guard';
 import { LoginDto } from '../dtos/login.dto';
+import { OtpService } from 'src/app.otp';
 
 @ApiBearerAuth()
 @ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(TransformInterceptor)
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService,  private readonly otpService: OtpService) {}
 
   @Get('/google')  
   @UseGuards(GoogleAuthGuard)  
@@ -50,6 +51,14 @@ export class AuthController {
   async register(@Body() createUserDto: CreateUserDto) {
     return await this.authService.register(createUserDto);
   }
+
+  @Post('/otp')
+  async generateOtp(@Body() body: { email?: string }): Promise<object> {
+  const email = body.email || 'default-email@example.com'; // Valor predeterminado para pruebas
+  const result = await this.otpService.sendOtp(email);
+  return { message: 'OTP sent', result };
+}
+
 
   @UseGuards(AccessTokenGuard)
   @Get('/logout')
