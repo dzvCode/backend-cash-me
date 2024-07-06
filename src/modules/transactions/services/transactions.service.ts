@@ -1,12 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Transaction, TransactionDocument } from '../models/transaction.model';
 import { Model } from 'mongoose';
 import { TransactionStatus, TransactionType } from 'src/common/enums/transaction.enum';
 import { CreateTransactionDto } from '../dtos/create-transaction.dto';
 import { TransactionFiltersDto } from '../dtos/transaction-filters.dto';
 import { UpdateTransactionDto } from '../dtos/update-transaction.dto';
-import { append } from 'cheerio/lib/api/manipulation';
+import { Transaction, TransactionDocument } from '../models/transaction.model';
 
 @Injectable()
 export class TransactionsService {
@@ -28,26 +27,7 @@ export class TransactionsService {
 
     if (existingPendingTransaction) {
       errors.push('Cannot create new transaction. There is already a pending transaction for this initiator.');
-    }
-
-    if (!createTransactionDto.latitude) {
-      errors.push('Latitude is required for creating transaction.');
-    }
-
-    if (!createTransactionDto.longitude) {
-      errors.push('Longitude is required for creating transaction.');
-    }
-
-    let invalidLatitude = createTransactionDto.latitude < -90 || createTransactionDto.latitude > 90;
-    let invalidLongitude = createTransactionDto.longitude < -180 || createTransactionDto.longitude > 180;
-
-    if (invalidLatitude) {
-      errors.push('Invalid latitude provided for creating transaction. Latitude must be between -90 and 90');
-    }
-
-    if (invalidLongitude) {
-      errors.push('Invalid longitude provided for creating transaction. Longitude must be between -180 and 180');
-    }
+    }    
 
     const newTransaction = new this.transactionModel(createTransactionDto);
 
@@ -55,19 +35,7 @@ export class TransactionsService {
       type: 'Point',
       coordinates: [createTransactionDto.longitude, createTransactionDto.latitude],
     };
-
-    if (newTransaction.amount <= 0) {
-      errors.push('Invalid amount provided for creating transaction.');
-    }
-
-    if (!Object.values(TransactionStatus).includes(newTransaction.status)) {
-      errors.push('Invalid status provided for creating transaction.');
-    }
-
-    if (!Object.values(TransactionType).includes(newTransaction.operationType)) {
-      errors.push('Invalid operationType provided for creating transaction.');
-    }
-
+    
     if (errors.length > 0) {
       throw new BadRequestException(errors);
     }

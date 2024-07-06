@@ -1,11 +1,11 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, Query, Req, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
-import { TransactionsService } from '../services/transactions.service';
-import { Transaction } from '../models/transaction.model';
-import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags, OmitType } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, Query, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags, OmitType } from '@nestjs/swagger';
 import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
 import { CreateTransactionDto } from '../dtos/create-transaction.dto';
 import { TransactionFiltersDto } from '../dtos/transaction-filters.dto';
 import { UpdateTransactionDto } from '../dtos/update-transaction.dto';
+import { Transaction } from '../models/transaction.model';
+import { TransactionsService } from '../services/transactions.service';
 
 @ApiTags('transactions')
 @Controller('transactions')
