@@ -42,6 +42,16 @@ export class TransactionsController {
     return await this.transactionsService.getTransactionsByStudentCode(studentCode);
   }
 
+  // controller to check if student has pending transaction
+  @Get("/:studentCode/pending")
+  @ApiOperation({ summary: 'Check if student has pending transaction' })
+  @ApiOkResponse({ status: HttpStatus.OK, description: 'Student has or not pending transaction', type: Transaction }) 
+  @ApiBadRequestResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid data provided for getting transactions.' })
+  @ApiParam({ name: 'studentCode', description: 'Student code' })
+  async checkStudentPendingTransaction(@Param('studentCode', ParseIntPipe) studentCode: number){
+    return await this.transactionsService.checkPendingTransactionByStudentCode(studentCode);
+  }
+
   @Put("/:id")
   @ApiOperation({ summary: 'Update transaction' })
   @ApiOkResponse({ status: HttpStatus.OK, description: 'Transaction updated successfully', type: Transaction })

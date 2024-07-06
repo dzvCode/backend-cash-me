@@ -84,7 +84,6 @@ export class TransactionsService {
     const query: any = {};
     const errors: string[] = [];
         
-    // Add other filters if provided
     for (const key in filtersDto) {
       if (key !== 'excludeSelf' && filtersDto[key] !== undefined) {
         query[key] = filtersDto[key];
@@ -162,7 +161,28 @@ export class TransactionsService {
     }
   }
 
-  // Update transaction status and add the student code of the student who approved the transaction
+  async checkPendingTransactionByStudentCode(studentCode: number) {
+    const errors: string[] = [];
+
+    if (studentCode.toString().length !== 8) {
+      errors.push('Invalid student code provided for fetching transactions. Student code must be 8 digits');
+    }
+
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
+    const pendingTransaction = await this.transactionModel.findOne({
+      initiatorCode: studentCode,
+      status: TransactionStatus.PENDING,
+    }).exec();
+
+    return {
+      message: pendingTransaction ? 'Pending transaction found' : 'No pending transaction found',
+      result: pendingTransaction
+    }
+  }
+
   async updateTransactionStatus(transactionId: string, updateTransactionDto: UpdateTransactionDto) {
     // Find the transaction first to get the current status
     const currentTransaction = await this.transactionModel.findById(transactionId).exec();
@@ -177,12 +197,10 @@ export class TransactionsService {
       errors.push('Transaction has already been approved. Status cannot be updated');
     }
 
-    // Check if initiator code is valid
     if (updateTransactionDto.approverCode.toString().length !== 8) {
       errors.push('Invalid approverCode provided for updating transaction. Approver code must be 8 digits');
     }
 
-    // Check if the new status is valid
     if (!Object.values(TransactionStatus).includes(updateTransactionDto.status)) {
       errors.push('Invalid status provided for updating transaction');
     }
@@ -199,17 +217,14 @@ export class TransactionsService {
       };
     }
   
-    // Save the previous status
     const previousStatus = currentTransaction.status;
   
-    // Proceed with the update
     const updatedTransaction = await this.transactionModel.findOneAndUpdate(
       { _id: transactionId },
       { $set: { status: updateTransactionDto.status, approverCode: updateTransactionDto.approverCode } },
       { new: true }
     ).exec();
   
-    // Return the result along with the previous status
     return {
       message: `Transaction status updated successfully from ${TransactionStatus[previousStatus]} to ${TransactionStatus[updateTransactionDto.status]}`,
       result: updatedTransaction,
