@@ -2,15 +2,14 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { OtpService } from './app.otp';
+import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
-import { GoogleStrategy } from './modules/auth/strategies/google.strategy';
 import { ChatModule } from './modules/chat/chat.module';
-import { UsersModule } from './modules/users/users.module';
+import { RoomsModule } from './modules/rooms/rooms.module';
 import { StudentsModule } from './modules/students/students.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
-import { RoomsModule } from './modules/rooms/rooms.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
