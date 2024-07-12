@@ -20,14 +20,14 @@ import { User } from '../models/user.model';
 import { UsersService } from '../services/users.service';
 import { ChangeRoleDto } from '../dtos/change-role.dto';
 
-@ApiBearerAuth()
+// @ApiBearerAuth()
 @ApiTags('users')
 @Controller('users')
 @UseInterceptors(TransformInterceptor)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Auth(UserRole.ADMIN)
+  // @Auth(UserRole.ADMIN)
   @Get()
   async findAll() {
     try {

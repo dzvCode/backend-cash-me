@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Post,
   Req,
   UseGuards,
@@ -15,9 +17,14 @@ import { AuthService } from 'src/modules/auth/services/auth.service';
 import { CreateUserDto } from 'src/modules/users/dtos/create-user.dto';
 import { AccessTokenGuard } from '../../../common/guards/access-token.guard';
 import { RefreshTokenGuard } from '../../../common/guards/refresh-token.guard';
+<<<<<<< Updated upstream
 import { AuthOtpDto } from '../dtos/auth-otp.dto';
 import { LoginDto } from '../dtos/login.dto';
 import { LoginGoogleDto } from '../dtos/login-google.dto';
+=======
+import { LoginDto } from '../dtos/login.dto';
+import { OtpService } from 'src/app.otp';
+>>>>>>> Stashed changes
 
 @ApiBearerAuth()
 @ApiTags('auth')
@@ -46,13 +53,13 @@ export class AuthController {
   }
 
   @Post('/otp')
-  @ApiOperation({ summary: 'Generate OTP' })
-  @ApiResponse({ status: 200, description: 'OTP sent' })
-  async generateOtp(@Body() authOtpDto: AuthOtpDto): Promise<object> {
-  const email = authOtpDto.email
-  const result = await this.otpService.sendOtp(email);
-  return { message: 'OTP sent', result };
-}
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate and send OTP to email' })
+  @ApiResponse({ status: 200, description: 'OTP sent successfully' })
+  async generateOtp(@Body() createUserDto: CreateUserDto): Promise<object> {
+    const result = await this.otpService.sendOTP(createUserDto);
+    return { message: `OTP successfully sent to ${createUserDto.email}`, result };
+  }
 
 
   @UseGuards(AccessTokenGuard)

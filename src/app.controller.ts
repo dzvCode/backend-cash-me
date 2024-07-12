@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, UseGuards, BadRequestException } from '@nestjs/common';
 import { AppService } from './app.service';
-import { OtpService } from './app.otp';
+// import { OtpService } from './app.otp';
 import { AccessTokenGuard } from './common/guards/access-token.guard';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -9,7 +9,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private readonly otpService: OtpService,
+    // private readonly otpService: OtpService,
   ) {}
 
   @UseGuards(AccessTokenGuard)
@@ -33,12 +33,4 @@ export class AppController {
     return { message: 'Authentication failed' };
   }
 
-  @Post('/otp')
-  async generateOtp(@Body() body: { email?: string }): Promise<object> {
-    if (!body.email) {
-      throw new BadRequestException('Email is required');
-    }
-    const result = await this.otpService.sendOtp(body.email);
-    return { message: 'OTP sent', result };
-  }
 }
