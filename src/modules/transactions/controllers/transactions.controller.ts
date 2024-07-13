@@ -4,6 +4,7 @@ import { TransformInterceptor } from 'src/common/interceptors/TransformIntercept
 import { CreateTransactionDto } from '../dtos/create-transaction.dto';
 import { TransactionFiltersDto } from '../dtos/transaction-filters.dto';
 import { UpdateTransactionDto } from '../dtos/update-transaction.dto';
+import { QueryDto } from '../dtos/query.dto';
 import { Transaction } from '../models/transaction.model';
 import { TransactionsService } from '../services/transactions.service';
 
@@ -66,4 +67,17 @@ export class TransactionsController {
     return await this.transactionsService.updateTransactionStatus(id, updateTransactionDto);
   }
 
+  // create an enpoint that sends a "query" and returns a response
+  @Post('/query')
+  @ApiOperation({ summary: 'Get transactions by query' })
+  @ApiOkResponse({ status: HttpStatus.OK, description: 'Transactions retrieved successfully' })
+  @ApiBadRequestResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid data provided for getting transactions.' })
+  @ApiBody({ type: QueryDto, description: 'User query' })
+  @ApiQuery({ name: 'from_context', description: 'Queries from Cash Me app context if true' })
+  async getResultByQuery(@Body() userQuery: QueryDto, @Query('from_context') fromContext?: string) {
+    console.log(userQuery);
+    console.log(fromContext);
+    
+    return await this.transactionsService.getResultByQuery(userQuery, fromContext);
+  }
 }

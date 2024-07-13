@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { TransactionStatus, TransactionType } from 'src/common/enums/transaction.enum';
 import { CreateTransactionDto } from '../dtos/create-transaction.dto';
 import { TransactionFiltersDto } from '../dtos/transaction-filters.dto';
 import { UpdateTransactionDto } from '../dtos/update-transaction.dto';
+import { QueryDto } from '../dtos/query.dto';
 import { Transaction, TransactionDocument } from '../models/transaction.model';
 
 @Injectable()
@@ -198,5 +199,67 @@ export class TransactionsService {
       result: updatedTransaction,
     };
   }
+
+  async getResultByQuery(userQuery: QueryDto, fromContext: string) {
+    const body = { query: userQuery.query };
+    let url: string = fromContext ? 'http://127.0.0.1:8000/query' : 'http://127.0.0.1:8000/query?from_context=true';
+  
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  
+    if (!response.ok) {
+      throw new HttpException(
+        `Error: ${response.statusText}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  
+    const result = await response.json();
+  
+    let userQueryResult: string;
+    if (fromContext === 'false') {
+      switch (result.answer) {
+        case 'moneyReceived':
+          const transactionsReceived = await this.transactionModel.find({ initiatorCode: userQuery.userCode, status: TransactionStatus.APPROVED });
+          const totalReceivedAmount = transactionsReceived.reduce((total, transaction) => total + transaction.amount, 0);
+          userQueryResult = `Has sido casheado un total de S/${totalReceivedAmount} por otros estudiantes`;
+          break;
+        case 'moneyGiven':
+          const transactionsGiven = await this.transactionModel.find({ approverCode: userQuery.userCode, status: TransactionStatus.APPROVED });
+          const totalGivenAmount = transactionsGiven.reduce((total, transaction) => total + transaction.amount, 0);
+          userQueryResult = `Has casheado un total de S/${totalGivenAmount} a otros estudiantes`;
+          break;
+        case 'moneyBalance':
+          const transactionsReceivedBalance = await this.transactionModel.find({ initiatorCode: userQuery.userCode, status: TransactionStatus.APPROVED });
+          const totalReceivedBalance = transactionsReceivedBalance.reduce((total, transaction) => total + transaction.amount, 0);
+  
+          const transactionsGivenBalance = await this.transactionModel.find({ approverCode: userQuery.userCode, status: TransactionStatus.APPROVED });
+          const totalGivenBalance = transactionsGivenBalance.reduce((total, transaction) => total + transaction.amount, 0);
+  
+          const totalBalance = totalReceivedBalance - totalGivenBalance;
+          userQueryResult = `Tu balance total de casheo es S/${totalBalance}`;
+          break;
+        case 'invalidQuery':
+          userQueryResult = 'Lo siento, tu consulta no está permitida.';
+          break;
+      }
+  
+      return {
+        message: "Query for user data executed successfully",
+        result: userQueryResult,
+      };
+    }
+  
+    return {
+      message: 'Query from Cash Me app context executed successfully',
+      result: result,
+    };
+  }  
 
 }

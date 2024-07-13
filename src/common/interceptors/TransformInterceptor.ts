@@ -26,6 +26,12 @@ export class TransformInterceptor<T>
   ): Observable<Response<T>> {
     return next.handle().pipe(
       map((data) => {
+        if (!data) {
+          return {
+            statusCode: HttpStatus.NO_CONTENT,
+            data: null,
+          };
+        }
         let statusCode = data.statusCode; // Check if statusCode is provided in data object
 
         // If statusCode is not provided in data object, get it from context
