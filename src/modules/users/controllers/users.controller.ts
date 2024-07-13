@@ -79,6 +79,23 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AccessTokenGuard)
+  @Get('student-code/:studentCode')
+  async findByStudentCode(@Param('studentCode') studentCode: string) {
+    try {
+      const result = await this.usersService.findByStudenCode(studentCode);
+      return {
+        message: 'User fetched successfully',
+        result: result,
+      };
+    } catch (error) {
+      return {
+        message: 'Failed to fetch user',
+        error: error.message,
+      };
+    }
+  }
+
   @Auth(UserRole.ADMIN)
   @Patch(':id/role')
   @ApiBody({ type: ChangeRoleDto, description: 'User role' })

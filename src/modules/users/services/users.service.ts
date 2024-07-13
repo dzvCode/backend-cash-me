@@ -43,6 +43,15 @@ export class UsersService {
   }
 
   /**
+   *  Finds a user by student code.
+   * @param studentCode  - The student code of the user to find.
+   * @returns A promise that resolves to the found user, or undefined if not found.
+   */
+  async findByStudenCode(studentCode: string): Promise<User | undefined> {
+    return await this.userModel.findOne({ studentCode }).select('-role -refreshToken');
+  }
+
+  /**
    * Finds a user by ID with full data.
    * @param id - The ID of the user to find.
    * @returns A promise that resolves to the found user, or undefined if not found
