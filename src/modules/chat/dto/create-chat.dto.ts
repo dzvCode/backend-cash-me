@@ -6,5 +6,5 @@ export class CreateChatDto {
     readonly roomId: string;
 
     @IsNotEmpty()
-    readonly content: string;
+    content: string;
 }

@@ -1,8 +1,15 @@
-import { Controller, Get, Post, Body, UseGuards, BadRequestException } from '@nestjs/common';
-import { AppService } from './app.service';
-import { OtpService } from './app.otp';
-import { AccessTokenGuard } from './common/guards/access-token.guard';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { OtpService } from './app.otp';
+import { AppService } from './app.service';
+import { AccessTokenGuard } from './common/guards/access-token.guard';
 
 @ApiTags('app')
 @Controller()
