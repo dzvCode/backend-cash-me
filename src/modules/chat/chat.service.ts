@@ -4,12 +4,16 @@ import { Model } from 'mongoose';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { GetChatDto } from './dto/get-chat.dto';
 import { Chat, ChatDocument } from './models/chat.model';
+import { BadWordConfig } from 'src/common/profanity/badword.config';
 
 @Injectable()
 export class ChatService {
   constructor(@InjectModel(Chat.name) private chatModel: Model<ChatDocument>) {}
 
   async create(senderId: string, createChatDto: CreateChatDto) {
+    
+    createChatDto.content = BadWordConfig.filterBadWords(createChatDto.content);
+
     const createdChat = new this.chatModel({
       ...createChatDto,
       sender_id: senderId,
