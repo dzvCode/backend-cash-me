@@ -202,7 +202,7 @@ export class TransactionsService {
 
   async getResultByQuery(userQuery: QueryDto, fromContext: string) {
     const body = { query: userQuery.query };
-    let url: string = fromContext ? 'http://127.0.0.1:8000/query' : 'http://127.0.0.1:8000/query?from_context=true';
+    let url: string = fromContext === 'false' ? 'http://127.0.0.1:8000/query' : 'http://127.0.0.1:8000/query?from_context=true';
   
     const response = await fetch(url, {
       method: 'POST',

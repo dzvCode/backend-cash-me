@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, Query, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags, OmitType } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags, OmitType } from '@nestjs/swagger';
 import { TransformInterceptor } from 'src/common/interceptors/TransformInterceptor';
 import { CreateTransactionDto } from '../dtos/create-transaction.dto';
 import { TransactionFiltersDto } from '../dtos/transaction-filters.dto';
@@ -70,14 +70,11 @@ export class TransactionsController {
   // create an enpoint that sends a "query" and returns a response
   @Post('/query')
   @ApiOperation({ summary: 'Get transactions by query' })
-  @ApiOkResponse({ status: HttpStatus.OK, description: 'Transactions retrieved successfully' })
-  @ApiBadRequestResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid data provided for getting transactions.' })
+  @ApiOkResponse({ status: HttpStatus.OK, description: 'The result of the query has been successfully retrieved' })
+  @ApiBadRequestResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid query provided' })
   @ApiBody({ type: QueryDto, description: 'User query' })
   @ApiQuery({ name: 'from_context', description: 'Queries from Cash Me app context if true' })
-  async getResultByQuery(@Body() userQuery: QueryDto, @Query('from_context') fromContext?: string) {
-    console.log(userQuery);
-    console.log(fromContext);
-    
+  async getResultByQuery(@Body() userQuery: QueryDto, @Query('from_context') fromContext?: string) {   
     return await this.transactionsService.getResultByQuery(userQuery, fromContext);
   }
 }
